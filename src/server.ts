@@ -600,6 +600,129 @@ const TOOLS = [
       required: ['id'],
     },
   },
+  {
+    name: 'renew_domain',
+    description: 'Renew an existing domain',
+    method: 'POST',
+    path: '/domains/{id}/renew',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: {
+          type: 'number',
+          description: 'Domain ID',
+        },
+        period: {
+          type: 'number',
+          description: 'Renewal period in years',
+        },
+      },
+      required: ['id', 'period'],
+    },
+  },
+  {
+    name: 'transfer_domain',
+    description: 'Initiate a domain transfer to Openprovider',
+    method: 'POST',
+    path: '/domains/transfers',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        domain: {
+          type: 'object',
+          description: 'Domain to transfer',
+          properties: {
+            name: {
+              type: 'string',
+              description: 'Domain name without extension',
+            },
+            extension: {
+              type: 'string',
+              description: 'Domain extension (TLD)',
+            },
+          },
+          required: ['name', 'extension'],
+        },
+        auth_code: {
+          type: 'string',
+          description: 'Transfer authorization code (EPP/auth code)',
+        },
+        owner_handle: {
+          type: 'string',
+          description: 'Owner contact handle',
+        },
+        name_servers: {
+          type: 'array',
+          description: 'List of nameservers',
+          items: {
+            type: 'object',
+            properties: {
+              name: { type: 'string', description: 'Nameserver hostname' },
+              ip:   { type: 'string', description: 'Nameserver IP address' },
+            },
+            required: ['name'],
+          },
+        },
+      },
+      required: ['domain', 'auth_code'],
+    },
+  },
+  {
+    name: 'update_domain_nameservers',
+    description: 'Update the nameservers for a domain',
+    method: 'PUT',
+    path: '/domains/{id}',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: {
+          type: 'number',
+          description: 'Domain ID',
+        },
+        name_servers: {
+          type: 'array',
+          description: 'List of nameservers to set',
+          items: {
+            type: 'object',
+            properties: {
+              name: { type: 'string', description: 'Nameserver hostname' },
+              ip:   { type: 'string', description: 'Nameserver IP address' },
+            },
+            required: ['name'],
+          },
+        },
+      },
+      required: ['id', 'name_servers'],
+    },
+  },
+  {
+    name: 'update_domain_contact',
+    description: 'Update contact handles for a domain (at least one handle required)',
+    method: 'PUT',
+    path: '/domains/{id}',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: {
+          type: 'number',
+          description: 'Domain ID',
+        },
+        owner_handle: {
+          type: 'string',
+          description: 'Owner contact handle',
+        },
+        admin_handle: {
+          type: 'string',
+          description: 'Administrative contact handle',
+        },
+        tech_handle: {
+          type: 'string',
+          description: 'Technical contact handle',
+        },
+      },
+      required: ['id'],
+    },
+  },
 ];
 
 /**
@@ -622,7 +745,11 @@ class MCPServer {
       'Content-Type': 'application/json',
       'User-Agent': 'openprovider-mcp-server/0.1.0',
     };
-    this.authToken = null;
+    this.authToken = process.env.OPENPROVIDER_API_KEY || null;
+
+    if (this.authToken) {
+      this.headers['Authorization'] = `Bearer ${this.authToken}`;
+    }
 
     // Initialize tools map - do this before creating server
     this.initializeTools();
@@ -744,11 +871,28 @@ class MCPServer {
           ]
         };
 
-      } catch (error) {
+      } catch (error: any) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         this.log('error', `Error executing tool ${name}: ${errorMessage}`);
 
-        throw error;
+        const status: number | undefined = error.status;
+        const code: string | number = error.apiCode || status || 'unknown';
+
+        const HINTS: Record<number, string> = {
+          401: 'Check your API key or credentials in .env',
+          404: 'Domain ID not found. Use list_domains to find the correct ID',
+          422: 'Validation error. Check required fields and formats',
+        };
+        const hint = (status && HINTS[status]) || 'Check the error message and your request parameters';
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify({ error: true, code, message: errorMessage, hint }),
+            },
+          ],
+        };
       }
     });
   }
@@ -899,6 +1043,14 @@ class MCPServer {
    */
   async handleLogin(tool, params) {
     try {
+      // If an API key is already set, skip login entirely
+      if (this.authToken && process.env.OPENPROVIDER_API_KEY) {
+        return {
+          success: true,
+          message: 'Using API key authentication — login not required.',
+        };
+      }
+
       // Use environment variables if no credentials provided
       const username = params.username || process.env.OPENPROVIDER_USERNAME;
       const password = params.password || process.env.OPENPROVIDER_PASSWORD;
@@ -1008,8 +1160,9 @@ class MCPServer {
           data: typeof responseData === 'object' ? JSON.stringify(responseData) : responseData
         });
 
-        // Rethrow with more context for better error handling
-        const detailedError = new Error(`API request failed with status ${responseStatus}: ${errorMessage}`);
+        const detailedError: any = new Error(responseData?.desc || errorMessage);
+        detailedError.status = responseStatus;
+        detailedError.apiCode = responseData?.code;
         throw detailedError;
       }
 

@@ -95,66 +95,61 @@ OPENPROVIDER_PASSWORD=your_password
 DEBUG=false
 ```
 
-## Integration with AI Assistants
+## Connecting to AI tools
 
-### Cursor Integration
+### Claude Desktop
 
-To use the Openprovider MCP server with Cursor, you need to add it to your Cursor MCP settings file located at:
-
-```
-~/.cursor/mcp/config.json
-```
-
-Add the following configuration:
+Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 
 ```json
 {
-  "servers": {
+  "mcpServers": {
     "openprovider": {
       "command": "node",
-      "args": ["/path/to/openprovider-server/server.js"],
+      "args": ["/absolute/path/to/openprovider-mcp/server.js"],
       "env": {
-        "OPENPROVIDER_USERNAME": "your_username",
-        "OPENPROVIDER_PASSWORD": "your_password",
-        "DEBUG": "false"
+        "OPENPROVIDER_API_KEY": "your_api_key"
       }
     }
   }
 }
 ```
 
-### Claude Integration
+Restart Claude Desktop after saving. The Openprovider tools will appear automatically.
 
-To use the Openprovider MCP server with Claude, you need to run the server and provide the endpoint to Claude. First, start the server:
+> **Username/password alternative:** Replace `OPENPROVIDER_API_KEY` with `OPENPROVIDER_USERNAME` and `OPENPROVIDER_PASSWORD` if you don't have an API key.
+
+### Cursor
+
+Edit `~/.cursor/mcp/config.json`:
+
+```json
+{
+  "servers": {
+    "openprovider": {
+      "command": "node",
+      "args": ["/absolute/path/to/openprovider-mcp/server.js"],
+      "env": {
+        "OPENPROVIDER_API_KEY": "your_api_key"
+      }
+    }
+  }
+}
+```
+
+Reload the Cursor window (`Cmd/Ctrl + Shift + P` → *Reload Window*) to pick up the change.
+
+> **Username/password alternative:** Replace `OPENPROVIDER_API_KEY` with `OPENPROVIDER_USERNAME` and `OPENPROVIDER_PASSWORD`.
+
+### n8n
+
+The MCP server must be running locally before n8n can call it:
 
 ```bash
-node server.js --port 3000
+node /absolute/path/to/openprovider-mcp/server.js
 ```
 
-Then, in Claude, you can connect to the MCP server using the following configuration:
-
-```
-MCP Server Configuration:
-- Name: openprovider
-- Endpoint: http://localhost:3000
-- Authentication: None (authentication is handled by the server)
-```
-
-You can then use the MCP tools in Claude by using the following syntax:
-
-```
-<mcp name="openprovider" tool="check_domain">
-{
-  "domains": [
-    {
-      "name": "example",
-      "extension": "com"
-    }
-  ],
-  "with_price": true
-}
-</mcp>
-```
+A ready-made workflow is available at [`examples/n8n-workflow.json`](examples/n8n-workflow.json). Import it into your n8n instance and set `OPENPROVIDER_API_KEY` (or username/password) in the environment where the server runs.
 
 ## Usage
 
