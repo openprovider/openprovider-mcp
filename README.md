@@ -1,283 +1,127 @@
 # Openprovider MCP Server
 
-This is a Model Context Protocol (MCP) server for Openprovider.com that allows users to interact with their Openprovider account to perform various domain management actions.
+**Official Model Context Protocol server for the Openprovider API.**
 
-## Features
+Maintained by Openprovider.
 
-The Openprovider MCP server provides the following tools:
+Connect Claude, or any [Model Context Protocol](https://modelcontextprotocol.io)
+client, to your Openprovider account to manage domains, DNS, SSL certificates,
+contacts, email and licences in natural language.
 
-- **login**: Authenticate with Openprovider and get a token
-- **check_domain**: Check domain availability
-- **register_domain**: Register a new domain
-- **list_domains**: List domains in your Openprovider account
-- **get_domain**: Get domain details
-- **list_contacts**: List contacts in your Openprovider account
-- **create_contact**: Create a new contact
+---
 
-## Installation
+## What you get
 
-### 1. Install Node.js
+**95 tools** across the Openprovider API:
 
-Before installing the MCP server, make sure Node.js 20+ is installed. You can do this via Node Version Manager (nvm):
+| Area | Examples |
+|---|---|
+| Domains | `check_domain`, `register_domain`, `renew_domain`, `transfer_domain`, `update_domain`, `delete_domain`, `restore_domain`, `suggest_domain` |
+| Transfers & auth codes | `get_domain_authcode`, `reset_domain_authcode`, `approve_domain_transfer`, `send_foa1_domain_transfer` |
+| DNS | `list_dns_zones`, `create_dns_zone`, `update_dns_zone`, `list_dns_zone_records`, DNS templates, nameservers, NS groups |
+| SSL | `list_ssl_products`, `create_ssl_order`, `renew_ssl_order`, `reissue_ssl_order`, `create_csr`, `decode_csr`, approver emails |
+| Contacts & customers | `list_contacts`, `create_contact`, `update_contact`, `list_customers`, `create_customer` |
+| Email | Email templates, email verification, SpamExperts domains |
+| DMARC | `list_dmarc_subscriptions`, `create_dmarc`, `get_dmarc`, `retry_dmarc` |
+| Licences | Plesk licences, licence prices and items |
+| Pricing & TLDs | `get_domain_price`, `list_tlds`, `get_tld` |
 
-```bash
-# Install nvm (if not already installed)
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+A full reference with input schemas is in [docs/tools.md](docs/tools.md).
 
-# Reload shell
-source ~/.bashrc
+## Quick start
 
-# Install Node.js 20
-nvm install 20
-
-# Set it as default
-nvm use 20
-```
-
-### 2. Clone the Repository
+Requires **Node.js 20+** and an Openprovider account with API access enabled.
 
 ```bash
-git clone git@github.com:hichamdotpage/openprovider-mcp.git
-cd openprovider-mcp
+npx openprovider-mcp
 ```
 
-### 3. Install Dependencies
+### Claude Desktop / Claude Code
 
-```bash
-npm install
-```
-
-### 4. Build the Project
-
-```bash
-npm run build
-```
-
-### 5. Test the Server
-
-```bash
-npm test
-```
-
-### 6. Install Globally (Optional)
-
-You can install the MCP server globally to use it as a CLI tool:
-
-```bash
-# Install globally from the local directory
-npm install -g .
-
-# Or with yarn
-yarn global add .
-
-# Or with pnpm
-pnpm add -g .
-```
-
-After installing globally, you can run the server from anywhere using:
-
-```bash
-openprovider-mcp
-```
-
-## Configuration
-
-### Environment Variables
-
-The server can be configured using environment variables. Create a `.env` file in the root directory based on the provided `.env.example`:
-
-```
-# Openprovider API Credentials
-OPENPROVIDER_USERNAME=your_username
-OPENPROVIDER_PASSWORD=your_password
-
-# Debug mode (true/false)
-DEBUG=false
-```
-
-## Integration with AI Assistants
-
-### Cursor Integration
-
-To use the Openprovider MCP server with Cursor, you need to add it to your Cursor MCP settings file located at:
-
-```
-~/.cursor/mcp/config.json
-```
-
-Add the following configuration:
+Add to your MCP client configuration:
 
 ```json
 {
-  "servers": {
+  "mcpServers": {
     "openprovider": {
-      "command": "node",
-      "args": ["/path/to/openprovider-server/server.js"],
+      "command": "npx",
+      "args": ["-y", "openprovider-mcp"],
       "env": {
-        "OPENPROVIDER_USERNAME": "your_username",
-        "OPENPROVIDER_PASSWORD": "your_password",
-        "DEBUG": "false"
+        "OPENPROVIDER_USERNAME": "your-openprovider-username",
+        "OPENPROVIDER_PASSWORD": "your-openprovider-password"
       }
     }
   }
 }
 ```
 
-### Claude Integration
-
-To use the Openprovider MCP server with Claude, you need to run the server and provide the endpoint to Claude. First, start the server:
+For Claude Code:
 
 ```bash
-node server.js --port 3000
+claude mcp add openprovider npx -y openprovider-mcp \
+  -e OPENPROVIDER_USERNAME=your-username \
+  -e OPENPROVIDER_PASSWORD=your-password
 ```
 
-Then, in Claude, you can connect to the MCP server using the following configuration:
+### From source
 
-```
-MCP Server Configuration:
-- Name: openprovider
-- Endpoint: http://localhost:3000
-- Authentication: None (authentication is handled by the server)
-```
-
-You can then use the MCP tools in Claude by using the following syntax:
-
-```
-<mcp name="openprovider" tool="check_domain">
-{
-  "domains": [
-    {
-      "name": "example",
-      "extension": "com"
-    }
-  ],
-  "with_price": true
-}
-</mcp>
+```bash
+git clone https://github.com/openprovider/openprovider-mcp.git
+cd openprovider-mcp
+npm install
+npm run build
+OPENPROVIDER_USERNAME=... OPENPROVIDER_PASSWORD=... npm start
 ```
 
-## Usage
+## Configuration
 
-Once configured, you can use the Openprovider MCP server with Claude, ChatGPT, Cursor or any other platform that supports the Model Context Protocol.
+| Variable | Required | Description |
+|---|---|---|
+| `OPENPROVIDER_USERNAME` | yes | Openprovider account username |
+| `OPENPROVIDER_PASSWORD` | yes | That account's password |
+| `OPENPROVIDER_BASE_URL` | no | Override the API base URL (defaults to the production API) |
 
-### Example: Checking Domain Availability
+Credentials are read from the environment, used only to obtain an API token from
+Openprovider, and are never written to disk or logged.
 
-```
-<use_mcp_tool>
-<server_name>openprovider</server_name>
-<tool_name>check_domain</tool_name>
-<arguments>
-{
-  "domains": [
-    {
-      "name": "example",
-      "extension": "com"
-    },
-    {
-      "name": "example",
-      "extension": "org"
-    }
-  ],
-  "with_price": true
-}
-</arguments>
-</use_mcp_tool>
-```
+> **Do not enable two-factor authentication on a user used for API access.**
+> Openprovider rejects 2FA logins over the API — the server reports this as
+> `Openprovider 10006: Two factor authenticator required`. Use a dedicated API
+> user without 2FA.
 
-### Example: Registering a Domain
+## Hosted option
 
-```
-<use_mcp_tool>
-<server_name>openprovider</server_name>
-<tool_name>register_domain</tool_name>
-<arguments>
-{
-  "domain": {
-    "name": "example",
-    "extension": "com"
-  },
-  "period": 1,
-  "owner_handle": "ABC123",
-  "name_servers": [
-    {
-      "name": "ns1.example.com"
-    },
-    {
-      "name": "ns2.example.com"
-    }
-  ]
-}
-</arguments>
-</use_mcp_tool>
-```
+Openprovider also runs a hosted, multi-tenant deployment at
+**https://mcp.openprovider.com** with a dashboard, API keys, team management,
+approval policies and an audit log. See
+[docs/MCP-SERVER.md](docs/MCP-SERVER.md) for client setup against the hosted
+endpoint. This repository is the standalone, self-hosted server.
+
+## Safety
+
+Many tools perform **real, billable and often irreversible** operations —
+registering, renewing, transferring and deleting domains, and ordering
+certificates and licences. This standalone build executes them directly with no
+approval step. Point it at an account you intend to change, and prefer a test
+account while you are exploring.
 
 ## Documentation
 
-Detailed documentation for all available tools can be found in the `docs` directory:
+- [Tool reference](docs/tools.md) — every tool and its input schema
+- [Hosted endpoint setup guide](docs/MCP-SERVER.md) — for `mcp.openprovider.com`, not this standalone server
+- [Troubleshooting](docs/troubleshooting.md)
+- [Examples](examples/)
+- [Openprovider API documentation](https://docs.openprovider.com)
 
-- [Tools Documentation](docs/tools.md): Detailed information about each tool, including input schemas, examples, and responses.
-- [Troubleshooting Guide](docs/troubleshooting.md): Solutions to common issues you might encounter when using the Openprovider MCP server.
+## Security
 
-## Examples
-
-The repository includes example scripts that demonstrate how to use the Openprovider MCP server:
-
-### Domain Check Example
-
-This example demonstrates how to check domain availability:
-
-```
-npm run example:check
-```
-
-### Domain Registration Example
-
-This example demonstrates how to register a new domain:
-
-```
-npm run example:register
-```
-
-## Integration with Workflows
-
-This MCP server can be used with workflow automation platforms like n8n to implement complex domain management workflows. The server exposes a standardized interface that can be accessed programmatically.
-
-The examples in the `examples` directory show how to integrate with the MCP server programmatically using Node.js.
-
-### n8n Workflow Example
-
-An example n8n workflow is provided in the `examples/n8n-workflow.json` file. This workflow demonstrates how to:
-
-1. Check domain availability
-2. Display domain status and pricing
-3. List contacts if the domain is available
-
-To use this workflow:
-
-1. Import the workflow JSON file into your n8n instance
-2. Set up environment variables for `OPENPROVIDER_USERNAME` and `OPENPROVIDER_PASSWORD`
-3. Make sure the Openprovider MCP server is running locally
-4. Activate and run the workflow
+Please report vulnerabilities privately — see [SECURITY.md](SECURITY.md).
+Do not open a public issue for a security problem.
 
 ## Contributing
 
-We welcome contributions to the Openprovider MCP Server! Please see the [Contributing Guide](CONTRIBUTING.md) for more information on how to get started.
-
-## About Openprovider
-
-Openprovider is a wholesaler of Internet services and products with a unique platform from which you can find and manage all the products you need: Domains, new gTLDs, SSL certificates, licenses for Plesk, spam filters, and more!
-
-For more information, visit [Openprovider.com](https://www.openprovider.com/).
-
-## Repository
-
-The source code for this project is available on GitHub:
-```
-git@github.com:hichamdotpage/openprovider-mcp.git
-```
-
-You can view the repository at [https://github.com/hichamdotpage/openprovider-mcp](https://github.com/hichamdotpage/openprovider-mcp)
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+MIT — see [LICENSE](LICENSE).

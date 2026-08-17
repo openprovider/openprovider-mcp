@@ -1,37 +1,32 @@
 {
   "name": "openprovider-mcp",
-  "version": "0.1.0",
-  "description": "MCP server for Openprovider API integration",
+  "version": "1.0.0",
+  "description": "Official Model Context Protocol server for the Openprovider API",
+  "license": "MIT",
   "type": "module",
-  "main": "server.js",
-  "bin": {
-    "openprovider-mcp": "./server.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:hichamdotpage/openprovider-mcp.git"
-  },
-  "homepage": "https://github.com/hichamdotpage/openprovider-mcp",
-  "bugs": {
-    "url": "https://github.com/hichamdotpage/openprovider-mcp/issues"
-  },
+  "bin": { "openprovider-mcp": "dist/index.js" },
+  "main": "dist/index.js",
+  "files": ["dist", "README.md", "SECURITY.md", "LICENSE"],
+  "engines": { "node": ">=20" },
+  "repository": { "type": "git", "url": "git+https://github.com/openprovider/openprovider-mcp.git" },
+  "homepage": "https://github.com/openprovider/openprovider-mcp#readme",
+  "bugs": { "url": "https://github.com/openprovider/openprovider-mcp/issues" },
+  "keywords": ["mcp", "model-context-protocol", "openprovider", "domains", "dns", "ssl", "registrar"],
   "scripts": {
-    "build": "tsc && node -e \"import('fs').then(fs => fs.chmodSync('server.js', '755'))\"",
-    "start": "node server.js",
-    "example:check": "node examples/domain-check.js",
-    "example:register": "node examples/domain-register.js",
-    "test": "node test/test-server.js"
+    "build": "tsc -p tsconfig.json && chmod +x dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.2",
-    "axios": "^1.6.2",
-    "dotenv": "^16.4.7",
-    "minimist": "^1.2.8"
+    "opossum": "^5.0.1",
+    "zod": "^3.23.8",
+    "zod-to-json-schema": "^3.25.2"
   },
   "devDependencies": {
-    "@types/minimist": "^1.2.5",
-    "@types/node": "^20.10.0",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.3.2"
+    "@types/node": "^20.14.0",
+    "@types/opossum": "^8.1.9",
+    "typescript": "^5.6.0"
   }
 }
