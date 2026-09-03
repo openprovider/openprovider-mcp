@@ -18,6 +18,7 @@ import { zodToJsonSchema } from 'zod-to-json-schema';
 import { createOpenproviderClient } from './openprovider/client.js';
 import { createOpenproviderTokenManager } from './openprovider/token-manager.js';
 import { buildTools } from './registry.js';
+import { TOOL_ANNOTATIONS } from './annotations.js';
 import type { Principal } from './auth/principal.js';
 import { readFileSync } from 'node:fs';
 
@@ -90,6 +91,10 @@ server.setRequestHandler(ListToolsRequestSchema, () =>
       description: t.description,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       inputSchema: zodToJsonSchema(t.inputSchema as any) as Record<string, unknown>,
+      // Spec ToolAnnotations: title + read-only/destructive/idempotent/open-world
+      // hints. This build has no approval step, so clients should treat the
+      // destructive hints as the only warning layer.
+      ...(TOOL_ANNOTATIONS[t.name] ? { annotations: TOOL_ANNOTATIONS[t.name] } : {}),
     })),
   }),
 );
