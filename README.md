@@ -12,7 +12,7 @@ contacts, email and licences in natural language.
 
 ## What you get
 
-**95 tools** across the Openprovider API:
+**97 tools** across the Openprovider API:
 
 | Area | Examples |
 |---|---|
