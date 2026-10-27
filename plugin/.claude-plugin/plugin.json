@@ -1,0 +1,21 @@
+{
+  "name": "openprovider",
+  "displayName": "Openprovider",
+  "version": "1.0.0",
+  "description": "Manage Openprovider domains, DNS, SSL certificates, contacts and licenses from Claude through the hosted Openprovider MCP server.",
+  "author": {
+    "name": "Openprovider",
+    "url": "https://www.openprovider.com"
+  },
+  "homepage": "https://mcp.openprovider.com",
+  "repository": "https://github.com/openprovider/openprovider-mcp",
+  "license": "MIT",
+  "privacyPolicyUrl": "https://www.openprovider.com/legal/privacy-policy",
+  "keywords": [
+    "domains",
+    "dns",
+    "ssl",
+    "registrar",
+    "openprovider"
+  ]
+}
